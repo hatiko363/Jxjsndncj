@@ -1,0 +1,107 @@
+-- Muscle Legends GUI с рабочим авто-ребиртом (rebirthRemote) и фармом силы
+local plr = game.Players.LocalPlayer
+local rs = game:GetService("ReplicatedStorage")
+
+-- Интерфейс
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "MuscleLegendsGUI"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 280, 0, 160)
+frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "Muscle Legends Script Menu"
+title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+title.TextColor3 = Color3.new(1,1,1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+
+local strengthToggle = Instance.new("TextButton", frame)
+strengthToggle.Size = UDim2.new(1, -20, 0, 40)
+strengthToggle.Position = UDim2.new(0, 10, 0, 40)
+strengthToggle.Text = "Включить авто силу"
+strengthToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+strengthToggle.TextColor3 = Color3.new(1, 1, 1)
+strengthToggle.Font = Enum.Font.SourceSansBold
+strengthToggle.TextSize = 16
+
+local rebirthToggle = Instance.new("TextButton", frame)
+rebirthToggle.Size = UDim2.new(1, -20, 0, 40)
+rebirthToggle.Position = UDim2.new(0, 10, 0, 90)
+rebirthToggle.Text = "Включить авто ребирт"
+rebirthToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+rebirthToggle.TextColor3 = Color3.new(1, 1, 1)
+rebirthToggle.Font = Enum.Font.SourceSansBold
+rebirthToggle.TextSize = 16
+
+-- Переключатели
+local strengthEnabled = false
+local rebirthEnabled = false
+
+strengthToggle.MouseButton1Click:Connect(function()
+    strengthEnabled = not strengthEnabled
+    strengthToggle.Text = strengthEnabled and "Выключить авто силу" or "Включить авто силу"
+end)
+
+rebirthToggle.MouseButton1Click:Connect(function()
+    rebirthEnabled = not rebirthEnabled
+    rebirthToggle.Text = rebirthEnabled and "Выключить авто ребирт" or "Включить авто ребирт"
+end)
+
+-- Экип Swift Samurai
+local function equipSamurai()
+    local folder = plr:WaitForChild("petsFolder"):WaitForChild("Unique")
+    for _, pet in pairs(folder:GetChildren()) do
+        if pet.Name == "Swift Samurai" then
+            rs.rEvents.equipPetEvent:FireServer("equipPet", pet)
+        end
+    end
+end
+
+-- Автокач силы
+task.spawn(function()
+    equipSamurai()
+    while true do
+        if strengthEnabled then
+            for _ = 1, 10 do
+                plr.muscleEvent:FireServer("rep")
+            end
+        end
+        task.wait(0.001)
+    end
+end)
+
+-- Авто ребирт через rebirthRemote (RemoteFunction)
+task.spawn(function()
+    while true do
+        if rebirthEnabled then
+            local func = rs:FindFirstChild("rEvents"):FindFirstChild("rebirthRemote")
+            if func and func:IsA("RemoteFunction") then
+                pcall(function()
+                    func:InvokeServer()
+                end)
+            end
+        end
+        wait(5)
+    end
+end)
+
+-- Авто-реконнект
+repeat wait() until game.CoreGui:FindFirstChild('RobloxPromptGui')
+local po = game.CoreGui.RobloxPromptGui.promptOverlay
+local ts = game:GetService('TeleportService')
+
+po.ChildAdded:Connect(function(a)
+    if a.Name == 'ErrorPrompt' then
+        repeat
+            ts:Teleport(game.PlaceId)
+            wait(2)
+        until false
+    end
+end)
